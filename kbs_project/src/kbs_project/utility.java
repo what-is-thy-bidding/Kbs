@@ -109,7 +109,7 @@ public class utility {
 		System.out.println(CTable);
 
 		
-		for(int i=0;i<T1.length-1;i++) {//*******************************
+		for(int i=0;i<T1.length;i++) {//*******************************
 			
 			if(T1[i].compareTo(T2[i])<0) {
 				return 1;
