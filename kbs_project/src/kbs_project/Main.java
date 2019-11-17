@@ -344,33 +344,40 @@ public class Main {
 		String [][]temp2 = Operations.Projection(Database, cols2, RowsTotal);
 		utility.print2Darray(temp2);
 		System.out.println( "-------------- ");
+		
 		System.out.println("Joining : AB & BC");
 		String [][]join12=Operations.Join(temp, temp2);
 		utility.print2Darray(join12);
 		
+		System.out.println( "-------------- ");
+		System.out.println("Projecting : A & C");
 		String [][]temp3=Operations.Projection(Database, cols3, RowsTotal);
 		utility.print2Darray(temp3);
+		
+		System.out.println( "-------------- ");
+		System.out.println("Projecting : B & C");
 		String [][]temp4=Operations.Projection(Database, cols4, RowsTotal);
 		utility.print2Darray(temp4);
 		System.out.println( " ----------------------------------- ");
+		
 		System.out.println("Joining : AC & BC");
 		String [][]join34=Operations.Join(temp3, temp4);
 		utility.print2Darray(join34);
 
 		System.out.println( " ----------------------------------- ");
-		/*System.out.println("Unioning the 2 Table");
+		System.out.println("Unioning the 2 Table");
 		String[][]answer=Operations.Union(join12, join34);
 		utility.print2Darray(answer);
-		System.out.println( " ----------------------------------- ");*/
-
+		System.out.println( " ----------------------------------- ");
 		
-		//String[] order= {"A","C","CTable"};
 		
-		//String [][] answerProject=(Operations.Projection(answer, order, answer.length));
+		String[] order= {"A","C","CTable"};
 		
-		//utility.print2Darray(answerProject);
+		String [][] answerProject=(Operations.Projection(answer, order, answer.length));
 		
-		//System.out.println();
+		utility.print2Darray(answerProject);
+		
+		System.out.println();
 
 
 			

@@ -45,11 +45,14 @@ public class utility {
 		
 		String []Keys=Table[0];
 		int prevIndex=0;
-		for(int i=1;i<Keys.length;i++) {
-			if(Keys[i].compareTo(Keys[prevIndex])==0) {
+		HashMap<String,Integer> repetations= new HashMap<String,Integer>(Keys.length);
+		
+		for(int i=0;i<Keys.length;i++) {
+			if(repetations.containsKey(Keys[i])) {
+				prevIndex=repetations.get(Keys[i]);
 				break;
 			}else {
-				prevIndex++;
+				repetations.put(Keys[i],i);
 			}
 		}
 		
@@ -104,12 +107,12 @@ public class utility {
 			System.out.print(s + " ");
 		}*/
 		
-		String CTable=(T1[T1.length-1] + " + "+T2[T2.length-1]);
+		//String CTable=(T1[T1.length-1] + " + "+T2[T2.length-1]);
 		//System.out.println();
-		System.out.println(CTable);
+		//System.out.println(CTable);
 
 		
-		for(int i=0;i<T1.length;i++) {//*******************************
+		for(int i=0;i<T1.length-1;i++) {//*******************************
 			
 			if(T1[i].compareTo(T2[i])<0) {
 				return 1;
@@ -117,6 +120,7 @@ public class utility {
 				return 2;
 			}
 		}
+		
 		return 0;
 	}
 	
@@ -151,6 +155,11 @@ public class utility {
 				insertion++;
 				
 			}else {
+				prevTuple[prevTuple.length-1]="( "+
+						prevTuple[prevTuple.length-1]+" + "+
+						currentTuple[prevTuple.length-1]+" )";
+				
+				tempTable[insertion-1]=prevTuple;
 				//update Semantics of prevTuple
 				
 				

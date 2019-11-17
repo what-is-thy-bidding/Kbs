@@ -12,7 +12,7 @@ public class Operations {
 		
 		int[] colIndex=new int[Order.length];// gets all the column indexes of the required Columns
 
-		System.out.println( " T1 "+ Order.length + " "+Table[0].length);
+		//System.out.println( " T1 "+ Order.length + " "+Table[0].length);
 		
 		for(int j=0;j<Order.length;j++) {
 			String Key=Order[j];
@@ -49,6 +49,13 @@ public class Operations {
 
 	public static String[][] Join(String[][]Table1, String[][]Table2) {
 		
+		Table1=Projection(Table1, Table1[0], Table1.length);
+		//System.out.println("Table 1");
+		//utility.print2Darray(Table1);
+		Table2=Projection(Table2,Table2[0],Table2.length);
+		//System.out.println("Table 2");
+		//utility.print2Darray(Table2);
+		
 		String semantics= Table1[0][Table1[0].length-1];
 		String T1Semantics[]= new String[Table1.length];
 		String T2Semantics[]= new String[Table2.length];
@@ -61,11 +68,6 @@ public class Operations {
 		}
 		
 
-		String values1[]=new String[Table1[0].length];
-		System.arraycopy(Table1[0], 0, values1, 0, Table1[0].length);
-
-		String values2[]=new String[Table2[0].length];
-		System.arraycopy(Table2[0], 0, values2, 0, Table2[0].length);
 
 		// Find all the common join Column
 		int T1Index=-1;
@@ -107,7 +109,14 @@ public class Operations {
 		 * 		  values2[values2.length-1]=values2[T1Index]		 to the front of the 2nd Table
 		 * 
 		 * */
-		String []newOrder1=new String[values1.length];
+
+		String values1[]=new String[Table1[0].length];
+		System.arraycopy(Table1[0], 0, values1, 0, Table1[0].length);
+
+		String values2[]=new String[Table2[0].length];
+		System.arraycopy(Table2[0], 0, values2, 0, Table2[0].length);
+		
+		/*String []newOrder1=new String[values1.length];
 		String []newOrder2=new String[values2.length];
 		
 		for(int i=0;i<values1.length;i++) {
@@ -117,57 +126,72 @@ public class Operations {
 		for(int i=0;i<values2.length;i++) {
 			newOrder2[i]=values2[i];
 			
-		}
+		}*/
 		
 		// Switch T1Index and put it at the end of newOrder1
 		// Switch T2Index and put it at the front of newOrder2
 		
-		String temp= newOrder1[T1Index];
+		/*String temp= newOrder1[T1Index];
 		newOrder1[T1Index]=newOrder1[values1.length-1];
 		newOrder1[values1.length-1]=temp;
 		
 		
 		temp= newOrder2[T2Index];
 		newOrder2[T2Index]=newOrder2[0];
-		newOrder2[0]=temp;
+		newOrder2[0]=temp;*/
 		
 		int T1Rows=Table1.length-1,T2Rows=Table2.length-1;//Excluding the 1st ROW
 
 		
-		Table1=Projection(Table1, newOrder1, T1Rows+1);
-		//System.out.println("Printing table 1 ********************");
+		//Table1=Projection(Table1, newOrder1, T1Rows+1);
+
 		
-		//utility.print2Darray(Table1);
-		
-		Table2=Projection(Table2, newOrder2, T2Rows+1);
+		//Table2=Projection(Table2, newOrder2, T2Rows+1);
 
 		String [][] ComputationTable=
-			new String[(T1Rows*T2Rows)+1][(values1.length+values2.length)+1];
+			new String[(T1Rows*T2Rows)+1][(values1.length-1+values2.length-1)+1];
 
-		int length=newOrder1.length+newOrder2.length;
-		for(int i=0;i<newOrder1.length;i++) {
+		//int length=newOrder1.length+newOrder2.length;
+		
+		int length=(values1.length-1)+(values2.length-1);
+
+		/*for(int i=0;i<newOrder1.length;i++) {
 			ComputationTable[0][i]=newOrder1[i];
 			length--;
+		}*/
+		for(int i=0;i<values1.length-1;i++) {
+			ComputationTable[0][i]=values1[i];
+			length--;
 		}
-
-		for(int i=0;i<newOrder2.length;i++) {
-			ComputationTable[0][length]=newOrder2[i];
+		for(int i=0;i<values2.length-1;i++) {
+			ComputationTable[0][length]=values2[i];
 			length++;
 		}
 
 		ComputationTable[0][length]=semantics;
 		//1st row of Computation Table A B B C CTABLE
 		
+		//utility.print2Darray(ComputationTable);
 		
 		int computationIndex=1;
 		
-		
-		//System.out.println("Code has reached");
+		//System.out.println(" ----++++++-------");
+
 		for(int i=1;i<Table1.length;i++) {
 			for(int j=1;j<Table2.length;j++) {
-				String [] T1=Table1[i];
-				String [] T2=Table2[j];
-				if(T1[T1.length-1].compareTo(T2[0])==0) {
+				String [] T1= new String[Table1[i].length-1];
+				System.arraycopy(Table1[i], 0, T1, 0, Table1[i].length-1);	
+				/*for(String T:T1) {
+					System.out.print(T + " - ");
+				}*/
+
+				String [] T2=new String[Table2[j].length-1];
+				System.arraycopy(Table2[j], 0, T2, 0, Table2.length-2);
+				/*for(String T:T2) {
+					System.out.print(T + " - ");
+				}*/
+
+				if(T1[T1Index].compareTo(T2[T2Index])==0) {
 					// Filling the computation Table
 
 					String[]combined= new String[T2.length+T1.length+1];
@@ -177,18 +201,23 @@ public class Operations {
 					
 					ComputationTable[computationIndex]=combined;
 					String Semantics="("+T1Semantics[i]+" * " +T2Semantics[j]+")";
+					
+					//System.out.println(Semantics);
+					
 					ComputationTable[computationIndex][ComputationTable[0].length-1]=Semantics;
 					computationIndex++;
+				}else {
+					//System.out.println();
 				}
+
 				
 			}
 
+
 			
 		}
-		//System.out.println("Code has reached");
-
-
-		//System.out.println(semantics1[0] + " -------------- ");
+		//System.out.println(" ----++++++-------");
+		//utility.print2Darray(ComputationTable);
 
 
 		String[][]finalTable=new String[computationIndex][];
@@ -209,6 +238,9 @@ public class Operations {
 		
 		String[][]testTable= utility.removeCommonColumn(finalTable);
 		
+		//System.out.println("testTable Table");
+		//utility.print2Darray(testTable);
+		//System.out.println(" **** ");
 		return testTable;
 		
 	}
