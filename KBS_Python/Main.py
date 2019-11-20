@@ -102,6 +102,27 @@ for T in db:
         AlterTable = "ALTER TABLE %s ADD COLUMN %s INT" % (T[0], Semantics[SelectedSemantics])
         mycursor.execute(AlterTable)
 
+        if SelectedSemantics==0: #Standard
+            print("Filling " + Semantics[SelectedSemantics] + " Column of Table " + T[0])
+            # UPDATE products set ProbabilitySem=rand()
+            sqlFormula = "UPDATE " + T[0] + " SET " + Semantics[SelectedSemantics] + "= 1";
+            mycursor.execute(sqlFormula)
+            mycursor.execute("SELECT %s FROM %s" % (Semantics[SelectedSemantics], T[0]))
+            rows = mycursor.fetchall()
+            print(rows)
+
+        elif SelectedSemantics==1: #Bag
+            print("Filling " + Semantics[SelectedSemantics] + " Column of Table " + T[0])
+            # UPDATE products SET BagSem =CAST(RAND()*10 AS UNSIGNED);
+            sqlFormula = "UPDATE " + T[0] + " SET " + Semantics[SelectedSemantics] + "= CAST(RAND() * 10 AS UNSIGNED)";
+            mycursor.execute(sqlFormula)
+            mycursor.execute("SELECT %s FROM %s" % (Semantics[SelectedSemantics], T[0]))
+            rows = mycursor.fetchall()
+            print(rows)
+
+        inputDb.commit()
+
+
     elif SelectedSemantics==2:
         #Polynomial
         AlterTable="ALTER TABLE  %s ADD COLUMN %s VARCHAR(100)"%(T[0], Semantics[SelectedSemantics])

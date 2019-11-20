@@ -1,0 +1,15 @@
+DESCRIBE products;
+update products SET ProbabilitySem=0.1 WHERE ProbabilitySem IS NULL;
+
+UPDATE products set ProbabilitySem=rand()
+SELECT ProbabilitySem FROM products;
+ALTER table stocks DROP COLUMN BagSem;
+ALTER table stocks DROP COLUMN CertainitySem;
+
+ALTER table products DROP CertainitySem, DROP ProbabilitySem, DROP BagSem, DROP StandardSem;
+ALTER table stocks DROP CertainitySem, DROP ProbabilitySem, DROP BagSem, DROP StandardSem;
+SELECT * FROM products;
+SELECT * FROM stocks;
+
+UPDATE products SET BagSem =CAST(RAND()*10 AS UNSIGNED);
+SELECT * FROM products;
