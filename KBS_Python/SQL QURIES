@@ -6,10 +6,42 @@ SELECT ProbabilitySem FROM products;
 ALTER table stocks DROP COLUMN BagSem;
 ALTER table stocks DROP COLUMN CertainitySem;
 
-ALTER table products DROP CertainitySem, DROP ProbabilitySem, DROP BagSem, DROP StandardSem;
-ALTER table stocks DROP CertainitySem, DROP ProbabilitySem, DROP BagSem, DROP StandardSem;
+ALTER table products DROP CertainitySem, DROP ProbabilitySem, DROP BagSem, DROP StandardSem, DROP PolynomialSem;
+ALTER table stocks DROP CertainitySem, DROP ProbabilitySem, DROP BagSem, DROP StandardSem, DROP PolynomialSem;
 SELECT * FROM products;
 SELECT * FROM stocks;
 
 UPDATE products SET BagSem =CAST(RAND()*10 AS UNSIGNED);
 SELECT * FROM products;
+
+
+
+update products JOIN(SELECT @rank:=0) r SET PolynomialSem=CONCACT ("a",CAST(@rank as Varchar(10))) :=@rank+1;
+select * from products;
+
+/* Concatenate 2 columns */
+
+drop table tbl;
+create table tbl(ID bigint not null primary key auto_increment,
+				name varchar(100)) auto_increment=1;
+
+insert into tbl (name) values ('a');
+insert into tbl (name) values ('a');
+select concat('S', id) as id, name from tbl;
+
+select* from tbl;
+
+
+POLYNOMIAL ANNOTATIONS INPUTTED
+
+/*ALTER TABLE products ADD ID INT ;*/
+/*SET @rank=0;
+update products set ID=@rank:=@rank+1;*/
+/*ALTER TABLE products ADD Anno VARCHAR(10);*/
+/*UPDATE products SET Anno="A";*/
+/*ALTER TABLE products ADD PolynomialSem VARCHAR(50);*/
+/*UPDATE products set PolynomialSem=CONCAT(ID,ANNO);
+ALTER TABLE products DROP ID,DROP ANNO;
+alter table products DROP PolynomialSem;
+alter table products drop PolynomialSem, DROP ID,DROP ANNO;
+select * from stocks;*/
