@@ -45,3 +45,12 @@ ALTER TABLE products DROP ID,DROP ANNO;
 alter table products DROP PolynomialSem;
 alter table products drop PolynomialSem, DROP ID,DROP ANNO;
 select * from stocks;*/
+
+/*This is the sql query to add the bag sematics of 2 tables and then save the table*/
+
+SELECT products.product_name,
+stocks.store_id,
+stocks.quantity,
+(stocks.BagSem+products.BagSem)AS BagSem
+FROM products, stocks
+WHERE products.product_id=stocks.product_id
