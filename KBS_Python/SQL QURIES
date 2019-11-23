@@ -54,3 +54,8 @@ stocks.quantity,
 (stocks.BagSem+products.BagSem)AS BagSem
 FROM products, stocks
 WHERE products.product_id=stocks.product_id
+
+
+Input SELECT Parameters  :product_name,product_id,stocks.store_id
+Input FROM Parameters :products,stocks
+Input WHERE Condition : products.product_id=stocks.product_id AND product_name="AKSHAT BISHT"

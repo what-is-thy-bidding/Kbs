@@ -220,15 +220,39 @@ while not (Query == "exit"):
 
     if not Query == "exit":
         queryNumber=queryNumber+1
-
         if "UNION" in Query:
             # '+'
             print("This is a union query ")
+
+            #Table 1
+            SELECT1 = input("Input Table 1 SELECT Parameters  :")
+            FROM1 = input("Input Table 1 FROM Parameters :")
+            WHERE1 = input("Input Table 1 WHERE Condition : ")
+
+            #Table 2
+            SELECT2 = input("Input Table 2 SELECT Parameters  :")
+            FROM2 = input("Input Table 2 FROM Parameters :")
+            WHERE2 = input("Input Table 2 WHERE Condition : ")
+
+            Q1 = "SELECT " + SELECT1 + " ,SUM(BagSem) as BagSem FROM (SELECT DISTINCT " + SELECT1 + " , " + FROM1 + "." + \
+                Semantics[SelectedSemantics] + "*" + FROM1 + "." + Semantics[
+                    SelectedSemantics] + " AS BagSem FROM " + FROM1 + " WHERE " + WHERE1 + ")AS T1 GROUP BY (" + SELECT1 + ")"
+
+            Q2 = "SELECT " + SELECT2 + " ,SUM(BagSem) as BagSem FROM (SELECT DISTINCT " + SELECT2 + " , " + FROM2 + "." + \
+                Semantics[SelectedSemantics] + "*" + FROM2 + "." + Semantics[
+                    SelectedSemantics] + " AS BagSem FROM " + FROM2 + " WHERE " + WHERE2 + ")AS T2 GROUP BY (" + SELECT2 + ")"
+
+            unionQ="SELECT " + SELECT1 + " ,SUM(BagSem) FROM (" + Q1 + "union all " + Q2+ ")AS T GROUP BY ("+ SELECT1 + ");"
+            print(unionQ)
             if SelectedSemantics==0:#Standard Semantics
                 print("Standard Semantics")
             elif SelectedSemantics==1:#Bag Semantics
-
+                mycursor.execute(unionQ)
+                print(mycursor.fetchall())
                 print("Bag Semantics")
+
+
+
             elif SelectedSemantics==2:#Polynomial Semantics
                 print("Polynomial Semantics")
             elif SelectedSemantics==3:#Probability Semantics
@@ -240,19 +264,35 @@ while not (Query == "exit"):
 
 
         elif "JOIN" in Query:
+
             print("This is a join query ")
             SELECT = input("Input SELECT Parameters  :")
             FROM   = input("Input FROM Parameters :")
             WHERE  = input("Input WHERE Condition : ")
-            print(SELECT)
-            print(FROM)
-            print(WHERE)
-            # '*'
 
+            '''print(SELECT)
+            print(FROM)
+            print(WHERE)'''
+
+            '''joinCondition=""
+
+            for i in WHERE:
+                if (i.__contains__("=") and i.count(".") == 2) and (not i.__contains__("!")) and (not i.__contains__("<")) and (not i.__contains__(">")):
+                    joinCondition = i
+                    break
+            '''
+
+            # '*'
             if SelectedSemantics == 0:  # Standard Semantics
                 print("Standard Semantics")
             elif SelectedSemantics == 1:  # Bag Semantics
                 print("Bag Semantics")
+                Tnames=FROM.split(",")
+                Q="SELECT "+SELECT+" ,SUM(BagSem) FROM (SELECT DISTINCT "+SELECT + " , "+Tnames[0]+"."+Semantics[SelectedSemantics] + "*"+Tnames[1]+"."+Semantics[SelectedSemantics] + " AS BagSem FROM "+FROM + " WHERE "+WHERE + ")AS T GROUP BY ("+SELECT+")"
+                print(Q)
+                mycursor.execute(Q)
+                print(mycursor.fetchall())
+
             elif SelectedSemantics == 2:  # Polynomial Semantics
                 print("Polynomial Semantics")
             elif SelectedSemantics == 3:  # Probability Semantics
