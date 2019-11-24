@@ -59,3 +59,15 @@ WHERE products.product_id=stocks.product_id
 Input SELECT Parameters  :product_name,product_id,stocks.store_id
 Input FROM Parameters :products,stocks
 Input WHERE Condition : products.product_id=stocks.product_id AND product_name="AKSHAT BISHT"
+
+
+--------------------------
+
+
+
+select distinct C,D, group_concat(jinann separator '+' ) as polynomial
+from(SELECT distinct products.product_name as C, stocks.quantity as D, concat('(',products.brand_id ,'*',stocks.quantity,')') as jinann
+FROM products, stocks
+where products.product_id=stocks.product_id) As T
+ group by C,D;
+
