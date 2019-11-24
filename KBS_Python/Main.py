@@ -36,6 +36,7 @@ for db in mycursor:
 
 mycursor.execute("SHOW TABLES")
 
+
 db = mycursor.fetchall()  # Fetches all the Table Names
 print(db)
 
@@ -52,13 +53,16 @@ Exists = False
 print(" _________________")
 print(" +++++++++++++++++ ")
 
+
+
 for T in db:
-    print(T[0] + " -----------------------")
+    print(T[0] + " -----------------------") #Name of the Table
     mycursor.execute("DESCRIBE %s" % T[0])
-    row = mycursor.fetchall()
+    row = mycursor.fetchall()#Attribute
     print(row)
     for A in row:
-        if A[0] == Semantics[SelectedSemantics]:
+        if A[0] == Semantics[SelectedSemantics]: #Attribute name
+
             Exists = True
             break
     if Exists == True:
@@ -213,6 +217,7 @@ QueryAnswerCursor.execute("CREATE DATABASE IF NOT EXISTS QueryResults")
 '''
 
 
+
 Query=""
 queryNumber=0
 while not (Query == "exit"):
@@ -234,40 +239,43 @@ while not (Query == "exit"):
             FROM2 = input("Input Table 2 FROM Parameters :")
             WHERE2 = input("Input Table 2 WHERE Condition : ")
 
-            
+
             if SelectedSemantics==0:#Standard Semantics
                 print("Standard Semantics")
             elif SelectedSemantics==1:#Bag Semantics
                 Q1 = "SELECT " + SELECT1 + " ,SUM(BagSem) as BagSem FROM (SELECT DISTINCT " + SELECT1 + " , " + FROM1 + "." + \
-                Semantics[SelectedSemantics] + "*" + FROM1 + "." + Semantics[
-                    SelectedSemantics] + " AS BagSem FROM " + FROM1 + " WHERE " + WHERE1 + ")AS T1 GROUP BY (" + SELECT1 + ")"
+                     Semantics[SelectedSemantics] + "*" + FROM1 + "." + Semantics[
+                         SelectedSemantics] + " AS BagSem FROM " + FROM1 + " WHERE " + WHERE1 + ")AS T1 GROUP BY (" + SELECT1 + ")"
 
                 Q2 = "SELECT " + SELECT2 + " ,SUM(BagSem) as BagSem FROM (SELECT DISTINCT " + SELECT2 + " , " + FROM2 + "." + \
-                Semantics[SelectedSemantics] + "*" + FROM2 + "." + Semantics[
-                    SelectedSemantics] + " AS BagSem FROM " + FROM2 + " WHERE " + WHERE2 + ")AS T2 GROUP BY (" + SELECT2 + ")"
+                     Semantics[SelectedSemantics] + "*" + FROM2 + "." + Semantics[
+                         SelectedSemantics] + " AS BagSem FROM " + FROM2 + " WHERE " + WHERE2 + ")AS T2 GROUP BY (" + SELECT2 + ")"
 
-                unionQ="SELECT " + SELECT1 + " ,SUM(BagSem) FROM (" + Q1 + "union all " + Q2+ ")AS T GROUP BY ("+ SELECT1 + ");"
+                unionQ = "SELECT " + SELECT1 + " ,SUM(BagSem) FROM (" + Q1 + "union all " + Q2 + ")AS T GROUP BY (" + SELECT1 + ");"
                 print(unionQ)
                 mycursor.execute(unionQ)
                 print(mycursor.fetchall())
                 print("Bag Semantics")
 
-
-
             elif SelectedSemantics==2:#Polynomial Semantics
                 print("Polynomial Semantics")
+                '''Q1 = "SELECT " + SELECT1 + " ,group_concat(jinann separator '+' ) as jinann FROM (SELECT DISTINCT " + SELECT1 + " ,concat('(', " + FROM1 + "." + \
+                     Semantics[SelectedSemantics] + ",'*'," + FROM1 + "." + Semantics[
+                         SelectedSemantics] + " ,')') as jinann FROM " + FROM1 + " WHERE " + WHERE1 + ")AS T1 GROUP BY (" + SELECT1 + ")"
+
+                Q2 = "SELECT " + SELECT2 + " ,group_concat(jinann separator '+' ) as jinann FROM (SELECT DISTINCT " + SELECT2 + " ,concat('(', " + FROM2 + "." + \
+                     Semantics[SelectedSemantics] + ",'*'," + FROM2 + "." + Semantics[
+                         SelectedSemantics] + " ,')') as jinann FROM " + FROM2 + " WHERE " + WHERE2 + ")AS T1 GROUP BY (" + SELECT2 + ")"
+
+                unionQ="SELECT " + SELECT1 + " ,group_concat(jinann separator '+' ) as polynomial FROM (" + Q1 + "union all " + Q2 + ")AS T GROUP BY (" + SELECT1 + ");"
                 
-                Q1 = "SELECT " + SELECT1 + " ,group_concat(jinann separator '+' ) as polynomial FROM (SELECT DISTINCT " + SELECT1 + " ,concat('(', " + FROM1 + "." + \
-                Semantics[SelectedSemantics] + ",'*'," + FROM1 + "." + Semantics[
-                    SelectedSemantics] + " ,')') as jinann" + FROM1 + " WHERE " + WHERE1 + ")AS T1 GROUP BY (" + SELECT1 + ");"
-
-              
-                print(Q1)
-                mycursor.execute(Q1)
+                print(unionQ)
+                mycursor.execute(unionQ)
                 print(mycursor.fetchall())
-
+                '''
             elif SelectedSemantics==3:#Probability Semantics
                 print("Probability Semantics")
+
             elif SelectedSemantics==4:#Certainty Semantics
                 print("Certainty Semantics")
             else:
@@ -277,9 +285,10 @@ while not (Query == "exit"):
         elif "JOIN" in Query:
 
             print("This is a join query ")
-            SELECT = input("Input SELECT Parameters  :")
-            FROM   = input("Input FROM Parameters :")
-            WHERE  = input("Input WHERE Condition : ")
+            SELECT = input("Input SELECT Parameters  :") #products_product_id, products_product_name
+            FROM   = input("Input FROM Parameters :") #products,stocks
+            WHERE  = input("Input WHERE Condition : ") #products_product_id=stocks_product_id
+            Tnames = FROM.split(",")
 
             '''print(SELECT)
             print(FROM)
@@ -298,18 +307,19 @@ while not (Query == "exit"):
                 print("Standard Semantics")
             elif SelectedSemantics == 1:  # Bag Semantics
                 print("Bag Semantics")
-                Tnames=FROM.split(",")
-                Q="SELECT "+SELECT+" ,SUM(BagSem) FROM (SELECT DISTINCT "+SELECT + " , "+Tnames[0]+"."+Semantics[SelectedSemantics] + "*"+Tnames[1]+"."+Semantics[SelectedSemantics] + " AS BagSem FROM "+FROM + " WHERE "+WHERE + ")AS T GROUP BY ("+SELECT+")"
+                Q="SELECT "+SELECT+" ,SUM(BagSem) FROM (SELECT DISTINCT "+SELECT + " , "+Tnames[0]+"."+Semantics[SelectedSemantics] + "*"+Tnames[1]+"."+Semantics[SelectedSemantics] + " AS BagSem FROM "+FROM + " WHERE "+WHERE + ")AS T GROUP BY "+SELECT
                 print(Q)
                 mycursor.execute(Q)
                 print(mycursor.fetchall())
 
             elif SelectedSemantics == 2:  # Polynomial Semantics
                 print("Polynomial Semantics")
+
             elif SelectedSemantics == 3:  # Probability Semantics
                 print("Probability Semantics")
             elif SelectedSemantics == 4:  # Certainty Semantics
                 print("Certainty Semantics")
+
             else:
                 break
 
