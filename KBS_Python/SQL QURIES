@@ -59,15 +59,3 @@ WHERE products.product_id=stocks.product_id
 Input SELECT Parameters  :product_name,product_id,stocks.store_id
 Input FROM Parameters :products,stocks
 Input WHERE Condition : products.product_id=stocks.product_id AND product_name="AKSHAT BISHT"
-
-
---------------------------
-
-
-
-select distinct A,B, max(jinann) as certainty
-from (SELECT distinct products.product_name as A, stocks.quantity as B, least(products.brand_id ,stocks.quantity) as jinann
-FROM products, stocks
-where products.product_id=stocks.product_id) As T
- group by A,B;
-

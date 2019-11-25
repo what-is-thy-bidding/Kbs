@@ -22,11 +22,6 @@ inputDb = mysql.connector.connect(
     passwd="password",
     database=database
 )
-print(inputDb)
-# Dropping The semantics Tables
-
-
-
 mycursor = inputDb.cursor()
 
 mycursor.execute("SHOW DATABASES")
@@ -230,36 +225,35 @@ while not (Query == "exit"):
             print("This is a union query ")
 
             #Table 1
-            SELECT1 = input("Input Table 1 SELECT Parameters  :")
-            FROM1 = input("Input Table 1 FROM Parameters :")
-            WHERE1 = input("Input Table 1 WHERE Condition : ")
+            SELECT1 = input("Input Table 1 SELECT Parameters  :")#products_product_id
+            FROM1 = input("Input Table 1 FROM Parameters :") #products
+            WHERE1 = input("Input Table 1 WHERE Condition : ")#products_product_id<5
 
             #Table 2
-            SELECT2 = input("Input Table 2 SELECT Parameters  :")
-            FROM2 = input("Input Table 2 FROM Parameters :")
-            WHERE2 = input("Input Table 2 WHERE Condition : ")
+            SELECT2 = input("Input Table 2 SELECT Parameters  :")#stocks_product_id
+            FROM2 = input("Input Table 2 FROM Parameters :")#stocks
+            WHERE2 = input("Input Table 2 WHERE Condition : ")#stocks_product_id<7
 
 
             if SelectedSemantics==0:#Standard Semantics
                 print("Standard Semantics")
+
             elif SelectedSemantics==1:#Bag Semantics
-                Q1 = "SELECT " + SELECT1 + " ,SUM(BagSem) as BagSem FROM (SELECT DISTINCT " + SELECT1 + " , " + FROM1 + "." + \
-                     Semantics[SelectedSemantics] + "*" + FROM1 + "." + Semantics[
-                         SelectedSemantics] + " AS BagSem FROM " + FROM1 + " WHERE " + WHERE1 + ")AS T1 GROUP BY (" + SELECT1 + ")"
+                print("Bag Semantics")
+                Q1 = "SELECT " + SELECT1 + " ,SUM(BagSem) as BagSem FROM (SELECT DISTINCT " + SELECT1 + " , " + \
+                     Semantics[SelectedSemantics]  + " AS BagSem FROM " + FROM1 + " WHERE " + WHERE1 + ")AS T1 GROUP BY (" + SELECT1 + ")"
 
-                Q2 = "SELECT " + SELECT2 + " ,SUM(BagSem) as BagSem FROM (SELECT DISTINCT " + SELECT2 + " , " + FROM2 + "." + \
-                     Semantics[SelectedSemantics] + "*" + FROM2 + "." + Semantics[
-                         SelectedSemantics] + " AS BagSem FROM " + FROM2 + " WHERE " + WHERE2 + ")AS T2 GROUP BY (" + SELECT2 + ")"
+                Q2 = "SELECT " + SELECT2 + " ,SUM(BagSem) as BagSem FROM (SELECT DISTINCT " + SELECT2 + " , " + \
+                     Semantics[SelectedSemantics] + " AS BagSem FROM " + FROM2 + " WHERE " + WHERE2 + ")AS T2 GROUP BY (" + SELECT2 + ")"
 
-                unionQ = "SELECT " + SELECT1 + " ,SUM(BagSem) FROM (" + Q1 + "union all " + Q2 + ")AS T GROUP BY (" + SELECT1 + ");"
+                unionQ = "SELECT " + SELECT1 + " ,SUM(BagSem) FROM (" + Q1 + " union all " + Q2 + ")AS T GROUP BY (" + SELECT1 + ");"
                 print(unionQ)
                 mycursor.execute(unionQ)
                 print(mycursor.fetchall())
-                print("Bag Semantics")
 
             elif SelectedSemantics==2:#Polynomial Semantics
                 print("Polynomial Semantics")
-                '''Q1 = "SELECT " + SELECT1 + " ,group_concat(jinann separator '+' ) as jinann FROM (SELECT DISTINCT " + SELECT1 + " ,concat('(', " + FROM1 + "." + \
+                Q1 = "SELECT " + SELECT1 + " ,group_concat(jinann separator '+' ) as jinann FROM (SELECT DISTINCT " + SELECT1 + " ,concat('(', " + FROM1 + "." + \
                      Semantics[SelectedSemantics] + ",'*'," + FROM1 + "." + Semantics[
                          SelectedSemantics] + " ,')') as jinann FROM " + FROM1 + " WHERE " + WHERE1 + ")AS T1 GROUP BY (" + SELECT1 + ")"
 
@@ -272,12 +266,23 @@ while not (Query == "exit"):
                 print(unionQ)
                 mycursor.execute(unionQ)
                 print(mycursor.fetchall())
-                '''
+
+
             elif SelectedSemantics==3:#Probability Semantics
                 print("Probability Semantics")
 
             elif SelectedSemantics==4:#Certainty Semantics
                 print("Certainty Semantics")
+                Q1 = "SELECT " + SELECT1 + " , MAX(jinann) AS CertainitySem FROM (SELECT DISTINCT " + SELECT1 + " , (" + \
+                    FROM1 + "." + Semantics[SelectedSemantics]  + ") AS jinann FROM " + FROM1 + " WHERE " + WHERE1 + ") AS T1 GROUP BY " + SELECT1
+
+                Q2 = "SELECT " + SELECT2 + " , MAX(jinann) AS CertainitySem FROM (SELECT DISTINCT " + SELECT2 + " , (" + \
+                     FROM2 + "." + Semantics[SelectedSemantics] + ") AS jinann FROM " + FROM2 + " WHERE " + WHERE2 + ") AS T2 GROUP BY " + SELECT2
+
+                unionQ = "SELECT " + SELECT1 + " ,MAX(CertainitySem) FROM (" + Q1 + " union all " + Q2 + ")AS T GROUP BY (" + SELECT1 + ");"
+
+                print(unionQ)
+
             else:
                 break
 
@@ -305,6 +310,7 @@ while not (Query == "exit"):
             # '*'
             if SelectedSemantics == 0:  # Standard Semantics
                 print("Standard Semantics")
+
             elif SelectedSemantics == 1:  # Bag Semantics
                 print("Bag Semantics")
                 Q="SELECT "+SELECT+" ,SUM(BagSem) FROM (SELECT DISTINCT "+SELECT + " , "+Tnames[0]+"."+Semantics[SelectedSemantics] + "*"+Tnames[1]+"."+Semantics[SelectedSemantics] + " AS BagSem FROM "+FROM + " WHERE "+WHERE + ")AS T GROUP BY "+SELECT
@@ -315,10 +321,39 @@ while not (Query == "exit"):
             elif SelectedSemantics == 2:  # Polynomial Semantics
                 print("Polynomial Semantics")
 
+                '''
+                SELECT DISTINCT products_product_name,stocks_quantity, group_concat(jinann separator '+' ) as polynomial FROM
+                (SELECT
+                 distinct products_product_name , stocks_quantity , concat('(', products.PolynomialSem, '*', stocks.PolynomialSem, ')') as jinann
+                FROM products, stocks WHERE
+                products_product_id = stocks_product_id) As T
+                group by product_name, stocks_quantity;
+                '''
+
+                Q="SELECT DISTINCT "+SELECT + " , group_concat( jinann separator '+') AS PolynomialSem FROM " \
+                                    "(SELECT DISTINCT "+SELECT + ", CONCAT( '(',"+Tnames[0]+"."+Semantics[SelectedSemantics] + ", '*' ,"+ Tnames[1]+"."+Semantics[SelectedSemantics]+",' )') AS jinann"\
+                                    " FROM "+FROM+ " WHERE "+WHERE +") AS T GROUP BY "+SELECT+";"
+
+                print(Q)
+                mycursor.execute(Q)
+                print(mycursor.fetchall())
+
             elif SelectedSemantics == 3:  # Probability Semantics
                 print("Probability Semantics")
             elif SelectedSemantics == 4:  # Certainty Semantics
                 print("Certainty Semantics")
+
+                '''
+                SELECT  products_product_name, stocks_quantity, MAX(jinann) AS CertainitySem
+                FROM(SELECT DISTINCT products_product_name, stocks_quantity , least(products.CertainitySem, stocks.CertainitySem) as jinann
+                FROM products, stocks WHERE products_product_id = stocks_product_id) As T GROUP BY products_product_name, stocks_quantity
+                '''
+                Q="SELECT "+SELECT + " , MAX(jinann) AS CertainitySem FROM (SELECT DISTINCT "+SELECT + " , LEAST("+Tnames[0] +"." +Semantics[SelectedSemantics]+","+Tnames[1] +"."+Semantics[SelectedSemantics]\
+                  +") AS jinann FROM "+FROM +" WHERE "+WHERE +") AS T GROUP BY "+SELECT
+
+                print(Q)
+                mycursor.execute(Q)
+                print(mycursor.fetchall())
 
             else:
                 break
