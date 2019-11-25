@@ -65,9 +65,9 @@ Input WHERE Condition : products.product_id=stocks.product_id AND product_name="
 
 
 
-select distinct C,D, group_concat(jinann separator '+' ) as polynomial
-from(SELECT distinct products.product_name as C, stocks.quantity as D, concat('(',products.brand_id ,'*',stocks.quantity,')') as jinann
+select distinct A,B, max(jinann) as certainty
+from (SELECT distinct products.product_name as A, stocks.quantity as B, least(products.brand_id ,stocks.quantity) as jinann
 FROM products, stocks
 where products.product_id=stocks.product_id) As T
- group by C,D;
+ group by A,B;
 
