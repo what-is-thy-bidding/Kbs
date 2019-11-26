@@ -59,3 +59,23 @@ WHERE products.product_id=stocks.product_id
 Input SELECT Parameters  :product_name,product_id,stocks.store_id
 Input FROM Parameters :products,stocks
 Input WHERE Condition : products.product_id=stocks.product_id AND product_name="AKSHAT BISHT"
+
+
+Database:
+
+CREATE TABLE TEST(
+name varchar(255),
+position varchar(255),
+city varchar(255),
+classification varchar(255),
+prob float);
+INSERT INTO TEST VALUES("John"     ,"Director"    ,"New York"   ,"unclassified",0.5);
+INSERT INTO TEST VALUES("Paul"     ,"Janitor"     ,"New York"   ,"restricted"  ,0.7);
+INSERT INTO TEST VALUES("Dave"     ,"Analyst"     ,"Paris"      ,"confidential",0.3);
+INSERT INTO TEST VALUES("Ellen"    ,"Field agent" ,"Berlin"     ,"secret"      ,0.2);
+INSERT INTO TEST VALUES("Magdalen" ,"Double Agent","Paris"      ,"top secret"  ,1.0);
+INSERT INTO TEST VALUES("Nancy"    ,"HR Director" ,"Paris"      ,"restricted"  ,0.8);
+INSERT INTO TEST VALUES("Susan"    ,"Analyst"     ,"Berlin"     ,"secret"      ,0.2);
+
+
+
