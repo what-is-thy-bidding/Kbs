@@ -1,6 +1,14 @@
 import mysql.connector
 import random
-
+'''
+Things left to do
+    1. JOIN: Standard
+    2. UNION: ALL
+    3. PROJECT: Standard,Certainty
+    4. SELECT: ALL
+    5. Query Processing
+    6. Polynomial Semantics Simplification    
+'''
 
 # database=input("Database name in mySQL: ")
 database = "production"
@@ -15,8 +23,40 @@ Semantics = [("StandardSem"),  # 0
              ("BagSem"),  # 1
              ("PolynomialSem"),  # 2
              ("ProbabilitySem"),  # 3
-             "CertaintySem"]  # 4
+             ("CertaintySem")]  # 4
 
+
+
+def select(query,Semantics):
+    '''
+
+    :param query:
+    :param Semantics:
+    :return:
+
+    S[column1,column2,....](Table){condition1,condition2...}
+
+    '''
+    query = "S[product_id,product_name](products)|product_id<5|"
+    columns = query[query.find('[') + 1:query.find(']')]
+    table = query[query.find('(') + 1:query.find(')')]
+    conditions= query[query.find('|')+1:len(query)-1]
+    print("SELECT "+columns+","+Semantics + " FROM " + table +" WHERE "+conditions+";")
+
+    if Semantics == "StandardSem":
+        print("StandardSem")
+
+    elif Semantics == "BagSem":
+        print("BagSem")
+
+    elif Semantics == "PolynomialSem":
+        print("PolynomialSem")
+
+    elif Semantics == "CertaintySem":
+        print("CertaintySem")
+
+    elif Semantics == "ProbabilitySem":
+        print("ProbabilitySem")
 
 
 def join(query, Semantics):
@@ -103,6 +143,11 @@ def join(query, Semantics):
 
     elif Semantics == "CertaintySem":
         print("CertaintySem")
+        TABLENAME = table1 + "_JOIN_" + table2
+        q = "CREATE TABLE %s SELECT %s %s.CertaintySem * %s.CertaintySem AS CertaintySem FROM %s INNER JOIN %s ON %s;" % (
+        TABLENAME, Columns, table1, table2, table1, table2, innerJoin)
+        print(q)
+        mycursor.execute(q)
 
     elif Semantics == "ProbabilitySem":
         print("ProbabilitySem")
@@ -110,9 +155,6 @@ def join(query, Semantics):
         q="CREATE TABLE %s SELECT %s %s.ProbabilitySem * %s.ProbabilitySem AS ProbabilitySem FROM %s INNER JOIN %s ON %s;"%(TABLENAME,Columns,table1,table2,table1,table2,innerJoin)
         print(q)
         mycursor.execute(q)
-
-
-
 
 
 def project(query, Semantics):
@@ -239,16 +281,12 @@ def union(query, Semantics):
             Algorithm:
             Find all the common columns between the 2 Tables
             UNION ALL them
-            CREATE the table with name 'table1_JOIN_table2'
-            Perform PROJECTION using project('[column1,column2...](table1_JOIN_table2)') to remove all the duplicates
+            CREATE the table with name 'table1_UNION_table2'
+            Perform PROJECTION using project('[column1,column2...](table1_UNION_table2)') to remove all the duplicates
     '''
 
     '''
     
-    :param query:
-    :param Semantics:
-    :return:
-
     U[table1](table2)
 
     '''
@@ -316,13 +354,6 @@ def main():
         # rows=(mycursor.fetchall())
         '''if(len(rows) > 0):
             print(rows[0])'''
-
-    '''
-    for T in db:
-        print(T[0] + " ===========")
-        mycursor.execute("SELECT * FROM  %s "%(T[0]))
-        print(mycursor.fetchone())
-    '''
 
     print(" _________________")
     print(" +++++++++++++++++ ")
@@ -417,9 +448,67 @@ def main():
 
     # -----------------------------------------------------------------------------------------------------------------------
 
-#project("", Semantics[3])
-join("",Semantics[3])
+def polynomialProcessing(exp):
+    '''
+    exp="( ((D1)+D2)*(D1+D3) )"
+    result="D1^{2} + D1*D3+ D2*D1 + D2*D3"
+
+    exp="D1^{2} + D1^{2}"
+    result=2D1^2
+    '''
+
+def queryProcessing(query, Semantics):
+    '''
+        {#[] ( {U { J [{#[]()}]  ({#[]()}) }  { J [{#()[]}] ({#()[]}) } } ) }
+    '''
+
+    q=" {#[] (      { U { J [{#[]()}]  ({#[]()}) }  { J [{#()[]}] ({#()[]}) } }     ) }"
+
+    forwardBrackIndex=[]
+    operators=['#','J','U']
+    print(q)
+    index=0
+    exit=False
+
+    for i in q:
+        if q[index]=='{':
+            forwardBrackIndex.append(index)
+        elif q[index]=='}':
+            startBrack=forwardBrackIndex.pop()
+            exp=q[startBrack: index+1]
+            print(exp)
+
+        index=index+1
+#STANDARD
+#select("",Semantics[0])
+#project("", Semantics[0])
+#join("",Semantics[0])
+#union("",Semantics[0])
+
+#BAG
+#select("",Semantics[1])
+#project("", Semantics[1])
+#join("",Semantics[1])
+#union("",Semantics[1])
+
+#POLYNOMIAL
+#select("",Semantics[2])
+#project("", Semantics[2])
+#join("",Semantics[2])
 #union("",Semantics[2])
 
+#PROBABILITY
+#select("",Semantics[3])
+#project("", Semantics[3])
+#join("",Semantics[3])
+#union("",Semantics[3])
+
+#CERTAINTY
+#select("",Semantics[4])
+#project("", Semantics[4])
+#join("",Semantics[4])
+#union("",Semantics[4])
+
+queryProcessing("",Semantics[0])
 mycursor.close()
 inputDb.close()
