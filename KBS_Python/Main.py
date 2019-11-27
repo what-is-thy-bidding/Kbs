@@ -17,9 +17,92 @@ Semantics = [("StandardSem"),  # 0
              ("ProbabilitySem"),  # 3
              "CertaintySem"]  # 4
 
-def project(query,Semantics):
+
+
+def join(query, Semantics):
+    '''
+        The 2 tables to be joined.
+        J[table1](table2)
+    '''
+    query="J[PRODUCTS_product_id_product_name](STOCKS_product_id_store_id)"
+    table1=query[query.find('[')+1:query.find(']')]
+    table2=query[query.find('(')+1:query.find(')')]
+
+    mycursor.execute("DESCRIBE %s" %table1)
+    T1Attributes =mycursor.fetchall()   #Gets all the names of the columns in Table 1
+    print(T1Attributes)
+
+    mycursor.execute("DESCRIBE %s" %table2)
+    T2Attributes =mycursor.fetchall()   #Gets all the names of the column in Table 2
+    print(T2Attributes)
+
+    commonAttributes=[]
+    Columns=""
+    firstExecution=True
+
+    #Looping through the 2 Table Attributes to find all the common Attributes, incase a join needs to happen with more than 1 column
+    for i in T1Attributes:
+        for j in T2Attributes:
+            if i[0]==j[0] and not i[0]==Semantics :
+                commonAttributes.append(i[0])
+                if firstExecution==True:
+                    firstExecution=False
+                    Columns="%s.%s, "%(table1,i[0])
+                else:
+                    Columns=Columns+"%s.%s, "%(table1,i[0])
+
+    #Looping though the Table 1 Attributes to find all the unique column names for the SELECT statement
+    for i in T1Attributes:
+        if not commonAttributes.__contains__(i[0]) and not i[0]==Semantics:
+            Columns=Columns+i[0]+", "
+
+    #Looping through the Table 2 Attributes to find all the unique columns for the SELECT statement
+    for j in T2Attributes:
+        if not commonAttributes.__contains__(j[0]) and not j[0]==Semantics:
+            Columns=Columns+j[0]+", "
+
+    print(Columns) #Columns will be the Attributes for the SELECT statement
+
+    innerJoin=""
+    firstExecution=True
+
+    #Looping through the Common attributes to write the INNER JOIN statement
+    for i in commonAttributes:
+        if firstExecution:
+            firstExecution=False
+            innerJoin="%s.%s=%s.%s "%(table1,i,table2,i)
+        else:
+            innerJoin=innerJoin+"AND %s.%s=%s.%s "%(table1,i,table2,i)
+
+    print(innerJoin) #innerJoin contains the WHERE ON joining CONDITION
+
+    if Semantics == "StandardSem":
+        print("StandardSem")
+
+    elif Semantics == "BagSem":
+        print("BagSem")
+        #if we want to save the table
+        #TableName="%s_JOIN_%s"(table1,table1)
+        #q="CREATE TABLE %s SELECT %s %s.BagSem* %s.BagSem AS BagSem FROM %s,%s WHERE %s;"%(TableName,Columns,table1,table2,table1,table2,innerJoin)
+
+        q="SELECT %s %s.BagSem* %s.BagSem AS BagSem FROM %s,%s WHERE %s;"%(Columns,table1,table2,table1,table2,innerJoin)
+        print(q)
+        mycursor.execute(q)
+        print(mycursor.fetchall())
+
+    elif Semantics == "PolynomialSem":
+        print("PolynomialSem")
+
+    elif Semantics == "CertaintySem":
+        print("CertaintySem")
+
+    elif Semantics == "ProbabilitySem":
+        print("ProbabilitySem")
+
+
+def project(query, Semantics):
     print("Project function")
-    query="#[product_id,store_id](stocks)"
+    query="#[product_id,product_name](products)"
 
     # #[ColumnName1,ColumnName2,ColumnName3](TableName)
     columns=(query[query.find('[')+1:query.find(']')] )
@@ -31,11 +114,11 @@ def project(query,Semantics):
     elif Semantics=="BagSem":
         print("BagSem")
         #This is the original query which helps create a result table
-        #q="CREATE TABLE IF NOT EXISTS %s SELECT %s ,SUM(BagSem) AS BagSem FROM %s GROUP BY %s"%(table.upper()+"_"+(columns.replace(",","_")).upper(),columns, table, columns)
-        q="SELECT %s, SUM(BagSem) AS BagSem FROM %s GROUP BY %s"%(columns,table,columns)
+        q="CREATE TABLE IF NOT EXISTS %s SELECT %s ,SUM(BagSem) AS BagSem FROM %s GROUP BY %s"%(table.upper()+"_"+(columns.replace(",","_")),columns, table, columns)
+        #q="SELECT %s, SUM(BagSem) AS BagSem FROM %s GROUP BY %s"%(columns,table,columns)
         print(q)
         mycursor.execute(q)
-        print(mycursor.fetchall())
+        #print(mycursor.fetchall())
 
     elif Semantics=="PolynomialSem":
         print("PolynomialSem")
@@ -269,7 +352,7 @@ def main():
 
     # -----------------------------------------------------------------------------------------------------------------------
 
-project("", Semantics[3])
-
+#project("", Semantics[1])
+join("",Semantics[1])
 mycursor.close()
 inputDb.close()
