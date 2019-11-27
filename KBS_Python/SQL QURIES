@@ -105,3 +105,21 @@ SELECT * FROM RESULT;
 DROP TABLE Copy;
 DROP TABLE LogCopy;
 DROP TABLE RESULT;
+
+
+Polynomial Semantics JOIN Function
+
+SELECT * FROM PRODUCTS_product_id_product_name;
+SELECT * FROM STOCKS_product_id_store_id;
+
+#With 1 common column for Natural Join
+SELECT PRODUCTS_product_id_product_name.product_id,product_name,store_id,
+CONCAT('(',PRODUCTS_product_id_product_name.PolynomialSem,'*', STOCKS_product_id_store_id.PolynomialSem,')')AS PolynomialSem 
+FROM PRODUCTS_product_id_product_name INNER JOIN STOCKS_product_id_store_id 
+ON PRODUCTS_product_id_product_name.product_id=STOCKS_product_id_store_id.product_id;
+
+#With 2 common columns for Natural Join
+SELECT PRODUCTS_product_id_product_name.product_id, PRODUCTS_product_id_product_name.PolynomialSem, product_name, store_id,  CONCAT('(',PRODUCTS_product_id_product_name.PolynomialSem,'*',STOCKS_product_id_store_id.PolynomialSem,')') AS PolynomialSem 
+FROM PRODUCTS_product_id_product_name INNER JOIN STOCKS_product_id_store_id 
+ON PRODUCTS_product_id_product_name.product_id=STOCKS_product_id_store_id.product_id AND PRODUCTS_product_id_product_name.PolynomialSem=STOCKS_product_id_store_id.PolynomialSem ;
+
