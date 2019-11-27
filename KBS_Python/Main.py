@@ -92,6 +92,14 @@ def join(query, Semantics):
 
     elif Semantics == "PolynomialSem":
         print("PolynomialSem")
+        '''SELECT PRODUCTS_product_id_product_name.product_id, product_name, store_id, CONCAT('(', PRODUCTS_product_id_product_name.PolynomialSem, '*', STOCKS_product_id_store_id.PolynomialSem, ')')
+        AS PolynomialSem FROM PRODUCTS_product_id_product_name INNER JOIN STOCKS_product_id_store_id ON PRODUCTS_product_id_product_name.product_id = STOCKS_product_id_store_id.product_id;'''
+
+        q="SELECT %s CONCAT('(',%s.PolynomialSem,'*',%s.PolynomialSem,')') AS PolynomialSem FROM %s INNER JOIN %s ON %s;"%(Columns, table1,table2,table1,table2,innerJoin)
+
+        print(q);
+        #mycursor.execute(q)
+        #print(mycursor.fetchall())
 
     elif Semantics == "CertaintySem":
         print("CertaintySem")
@@ -123,11 +131,14 @@ def project(query, Semantics):
     elif Semantics=="PolynomialSem":
         print("PolynomialSem")
         #This is the original query which helps create a result table
-        #q="CREATE TABLE IF NOT EXISTS %s SELECT %s ,GROUP_CONCAT(PolynomialSem SEPARATOR'+') AS PolynomialSem FROM %s GROUP BY %s;" %(table.upper()+"_"+(columns.replace(",","_")).upper(),columns, table, columns)
-        q="SELECT %s,GROUP_CONCAT(PolynomialSem SEPARATOR '+') AS PolynomialSem FROM %s GROUP BY %s;"%(columns,table,columns)
+        q = "CREATE TABLE IF NOT EXISTS %s SELECT %s, CONCAT('(',PolynomialSem,')') AS PolynomialSem FROM (SELECT %s, GROUP_CONCAT(PolynomialSem SEPARATOR '+') AS PolynomialSem FROM %s GROUP BY %s) AS T;" %(table.upper() + "_" + (columns.replace(",", "_")), columns, columns, table, columns)
         print(q)
+
+        #SELECT store_id,CONCAT('(',PolynomialSem,')') AS PolynomialSem FROM(SELECT store_id,GROUP_CONCAT(PolynomialSem SEPARATOR'+') AS PolynomialSem FROM stocks GROUP BY store_id) AS T;
+        #q="SELECT %s, CONCAT('(',PolynomialSem,')') AS PolynomialSem FROM (SELECT %s, GROUP_CONCAT(PolynomialSem SEPARATOR '+') AS PolynomialSem FROM %s GROUP BY %s) AS T;" %(columns, columns, table, columns)
+
         mycursor.execute(q)
-        print(mycursor.fetchall())
+        #print(mycursor.fetchall())
 
     elif Semantics=="CertaintySem":
         print("CertaintySem")
@@ -208,6 +219,38 @@ def project(query, Semantics):
         mycursor.execute(q)
         q="DROP TABLE RESULT;"
         mycursor.execute(q)
+
+
+def union(query, Semantics):
+    '''
+
+    :param query:
+    :param Semantics:
+    :return:
+
+    U[table1](table2)
+
+    '''
+    query="U[products](stocks)"
+    table1=query[query.find('[')+1:query.find(']')]
+    table2=query[query.find('(')+1:query.find(')')]
+    print(table1 + " " + table2)
+
+    if Semantics == "StandardSem":
+        print("StandardSem")
+
+    elif Semantics == "BagSem":
+        print("BagSem")
+
+
+    elif Semantics == "PolynomialSem":
+        print("PolynomialSem")
+
+    elif Semantics == "CertaintySem":
+        print("CertaintySem")
+
+    elif Semantics == "ProbabilitySem":
+        print("ProbabilitySem")
 
 
 def main():
@@ -352,7 +395,9 @@ def main():
 
     # -----------------------------------------------------------------------------------------------------------------------
 
-#project("", Semantics[1])
-join("",Semantics[1])
+#project("", Semantics[2])
+#join("",Semantics[2])
+union("",Semantics[2])
+
 mycursor.close()
 inputDb.close()
