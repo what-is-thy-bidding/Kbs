@@ -78,4 +78,30 @@ INSERT INTO TEST VALUES("Nancy"    ,"HR Director" ,"Paris"      ,"restricted"  ,
 INSERT INTO TEST VALUES("Susan"    ,"Analyst"     ,"Berlin"     ,"secret"      ,0.2);
 
 
+Probablity Semantics Projection Funtion
+#The Algorithm
+#1.Copy all the required columns into a new table
+CREATE TABLE Copy SELECT city,prob FROM TEST;
+#2.UPDATE Copy by subtracting 1 with all probabilities
+UPDATE Copy SET prob=1-prob;
+#3.Create a LogCopy that will have the log values of all probabilities
+CREATE TABLE LogCopy
+	SELECT city, SUM(LnProb) AS prob FROM(
+		SELECT city, 
+		CASE WHEN prob=0 THEN 4294967295
+		ELSE LN(prob)
+		END AS LnProb FROM Copy
+	) AS prob GROUP BY city;
+#4.UPDATE LogCopy and set every values>1 as 0
+UPDATE LogCopy SET prob=0 WHERE prob>1;
+#5.CREATE a final RESULT Table which has the exponent values of the Log values
+CREATE TABLE RESULT 
+	SELECT city, EXP(prob) AS prob FROM LogCopy ;
+#6. UPDATE RESULT table by subtracting from 1 execpt if the values are already 1 
+UPDATE RESULT SET prob=1-prob WHERE NOT prob=1;
+SELECT * FROM RESULT;
+#7.DROP the Remaining tables
+DROP TABLE Copy;
+DROP TABLE LogCopy;
+DROP TABLE RESULT;
 
