@@ -24,7 +24,7 @@ def join(query, Semantics):
         The 2 tables to be joined.
         J[table1](table2)
     '''
-    query="J[PRODUCTS_product_id_product_name](STOCKS_product_id_store_id)"
+    query="J[PRODUCTS_product_id](STOCKS_product_id)"
     table1=query[query.find('[')+1:query.find(']')]
     table2=query[query.find('(')+1:query.find(')')]
 
@@ -61,7 +61,7 @@ def join(query, Semantics):
         if not commonAttributes.__contains__(j[0]) and not j[0]==Semantics:
             Columns=Columns+j[0]+", "
 
-    print(Columns) #Columns will be the Attributes for the SELECT statement
+    print("Select statement : "+Columns) #Columns will be the Attributes for the SELECT statement
 
     innerJoin=""
     firstExecution=True
@@ -74,7 +74,7 @@ def join(query, Semantics):
         else:
             innerJoin=innerJoin+"AND %s.%s=%s.%s "%(table1,i,table2,i)
 
-    print(innerJoin) #innerJoin contains the WHERE ON joining CONDITION
+    print("Join statement:"+innerJoin) #innerJoin contains the WHERE ON joining CONDITION
 
     if Semantics == "StandardSem":
         print("StandardSem")
@@ -106,11 +106,18 @@ def join(query, Semantics):
 
     elif Semantics == "ProbabilitySem":
         print("ProbabilitySem")
+        TABLENAME=table1+"_JOIN_"+table2
+        q="CREATE TABLE %s SELECT %s %s.ProbabilitySem * %s.ProbabilitySem AS ProbabilitySem FROM %s INNER JOIN %s ON %s;"%(TABLENAME,Columns,table1,table2,table1,table2,innerJoin)
+        print(q)
+        mycursor.execute(q)
+
+
+
 
 
 def project(query, Semantics):
     print("Project function")
-    query="#[product_id,product_name](products)"
+    query="#[product_id](products)"
 
     # #[ColumnName1,ColumnName2,ColumnName3](TableName)
     columns=(query[query.find('[')+1:query.find(']')] )
@@ -211,19 +218,33 @@ def project(query, Semantics):
         q="SELECT %s,ProbabilitySem FROM RESULT;"%columns
         #print(q)
         mycursor.execute(q)
-        #print(mycursor.fetchall())
+        print(mycursor.fetchall())
         #9
         q="DROP TABLE Copy;"
         mycursor.execute(q)
         q="DROP TABLE LogCopy;"
         mycursor.execute(q)
-        q="DROP TABLE RESULT;"
+
+        TABLENAME=table.upper()+"_"+columns.replace(",","_")
+        print(TABLENAME)
+        q="RENAME TABLE RESULT TO "+TABLENAME+";"
         mycursor.execute(q)
+
+        # q="DROP TABLE %s;"%TABLENAME
+        # mycursor.execute(q)
 
 
 def union(query, Semantics):
     '''
+            Algorithm:
+            Find all the common columns between the 2 Tables
+            UNION ALL them
+            CREATE the table with name 'table1_JOIN_table2'
+            Perform PROJECTION using project('[column1,column2...](table1_JOIN_table2)') to remove all the duplicates
+    '''
 
+    '''
+    
     :param query:
     :param Semantics:
     :return:
@@ -251,6 +272,7 @@ def union(query, Semantics):
 
     elif Semantics == "ProbabilitySem":
         print("ProbabilitySem")
+
 
 
 def main():
@@ -395,9 +417,9 @@ def main():
 
     # -----------------------------------------------------------------------------------------------------------------------
 
-#project("", Semantics[2])
-#join("",Semantics[2])
-union("",Semantics[2])
+#project("", Semantics[3])
+join("",Semantics[3])
+#union("",Semantics[2])
 
 mycursor.close()
 inputDb.close()
