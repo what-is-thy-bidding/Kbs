@@ -6,8 +6,7 @@ Things left to do
     2. UNION: Standard
     3. PROJECT: Standard
     4. SELECT: ALL
-    5. Query Processing
-    6. Polynomial Semantics Simplification    
+    5. Polynomial Semantics Simplification    
 '''
 
 # database=input("Database name in mySQL: ")
