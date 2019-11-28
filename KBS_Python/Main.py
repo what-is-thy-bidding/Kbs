@@ -3,8 +3,8 @@ import random
 '''
 Things left to do
     1. JOIN: Standard
-    2. UNION: ALL
-    3. PROJECT: Standard,Certainty
+    2. UNION: Standard
+    3. PROJECT: Standard
     4. SELECT: ALL
     5. Query Processing
     6. Polynomial Semantics Simplification    
@@ -26,8 +26,7 @@ Semantics = [("StandardSem"),  # 0
              ("CertaintySem")]  # 4
 
 
-
-def select(query,Semantics):
+def select(query,Semantics,TABLENAME):
     '''
 
     :param query:
@@ -58,23 +57,22 @@ def select(query,Semantics):
     elif Semantics == "ProbabilitySem":
         print("ProbabilitySem")
 
-
-def join(query, Semantics):
+def join(query, Semantics,TABLENAME):
     '''
         The 2 tables to be joined.
         J[table1](table2)
     '''
-    query="J[PRODUCTS_product_id](STOCKS_product_id)"
+
     table1=query[query.find('[')+1:query.find(']')]
     table2=query[query.find('(')+1:query.find(')')]
 
     mycursor.execute("DESCRIBE %s" %table1)
     T1Attributes =mycursor.fetchall()   #Gets all the names of the columns in Table 1
-    print(T1Attributes)
+    #print(T1Attributes)
 
     mycursor.execute("DESCRIBE %s" %table2)
     T2Attributes =mycursor.fetchall()   #Gets all the names of the column in Table 2
-    print(T2Attributes)
+    #print(T2Attributes)
 
     commonAttributes=[]
     Columns=""
@@ -101,7 +99,7 @@ def join(query, Semantics):
         if not commonAttributes.__contains__(j[0]) and not j[0]==Semantics:
             Columns=Columns+j[0]+", "
 
-    print("Select statement : "+Columns) #Columns will be the Attributes for the SELECT statement
+    #print("Select statement : "+Columns) #Columns will be the Attributes for the SELECT statement
 
     innerJoin=""
     firstExecution=True
@@ -114,52 +112,43 @@ def join(query, Semantics):
         else:
             innerJoin=innerJoin+"AND %s.%s=%s.%s "%(table1,i,table2,i)
 
-    print("Join statement:"+innerJoin) #innerJoin contains the WHERE ON joining CONDITION
+    #print("Join statement:"+innerJoin) #innerJoin contains the WHERE ON joining CONDITION
 
     if Semantics == "StandardSem":
         print("StandardSem")
 
     elif Semantics == "BagSem":
         print("BagSem")
-        #if we want to save the table
-        #TableName="%s_JOIN_%s"(table1,table1)
-        #q="CREATE TABLE %s SELECT %s %s.BagSem* %s.BagSem AS BagSem FROM %s,%s WHERE %s;"%(TableName,Columns,table1,table2,table1,table2,innerJoin)
-
-        q="SELECT %s %s.BagSem* %s.BagSem AS BagSem FROM %s,%s WHERE %s;"%(Columns,table1,table2,table1,table2,innerJoin)
-        print(q)
+        q="CREATE TABLE %s SELECT %s %s.BagSem* %s.BagSem AS BagSem FROM %s,%s WHERE %s;"%(TABLENAME,Columns,table1,table2,table1,table2,innerJoin)
+        #print(q)
         mycursor.execute(q)
-        print(mycursor.fetchall())
 
     elif Semantics == "PolynomialSem":
         print("PolynomialSem")
         '''SELECT PRODUCTS_product_id_product_name.product_id, product_name, store_id, CONCAT('(', PRODUCTS_product_id_product_name.PolynomialSem, '*', STOCKS_product_id_store_id.PolynomialSem, ')')
         AS PolynomialSem FROM PRODUCTS_product_id_product_name INNER JOIN STOCKS_product_id_store_id ON PRODUCTS_product_id_product_name.product_id = STOCKS_product_id_store_id.product_id;'''
 
-        q="SELECT %s CONCAT('(',%s.PolynomialSem,'*',%s.PolynomialSem,')') AS PolynomialSem FROM %s INNER JOIN %s ON %s;"%(Columns, table1,table2,table1,table2,innerJoin)
+        q="CREATE TABLE %s SELECT %s CONCAT('(',%s.PolynomialSem,'*',%s.PolynomialSem,')') AS PolynomialSem FROM %s INNER JOIN %s ON %s;"%(TABLENAME,Columns, table1,table2,table1,table2,innerJoin)
 
         print(q);
-        #mycursor.execute(q)
+        mycursor.execute(q)
         #print(mycursor.fetchall())
 
     elif Semantics == "CertaintySem":
         print("CertaintySem")
-        TABLENAME = table1 + "_JOIN_" + table2
-        q = "CREATE TABLE %s SELECT %s %s.CertaintySem * %s.CertaintySem AS CertaintySem FROM %s INNER JOIN %s ON %s;" % (
-        TABLENAME, Columns, table1, table2, table1, table2, innerJoin)
+        q = "CREATE TABLE %s SELECT %s %s.CertaintySem * %s.CertaintySem AS CertaintySem FROM %s INNER JOIN %s ON %s;" % (TABLENAME, Columns, table1, table2, table1, table2, innerJoin)
         print(q)
         mycursor.execute(q)
 
     elif Semantics == "ProbabilitySem":
         print("ProbabilitySem")
-        TABLENAME=table1+"_JOIN_"+table2
+        #ROUND function in the Join needs to be implemented
         q="CREATE TABLE %s SELECT %s %s.ProbabilitySem * %s.ProbabilitySem AS ProbabilitySem FROM %s INNER JOIN %s ON %s;"%(TABLENAME,Columns,table1,table2,table1,table2,innerJoin)
         print(q)
         mycursor.execute(q)
 
-
-def project(query, Semantics):
+def project(query, Semantics,TABLENAME):
     print("Project function")
-    query="#[product_id](products)"
 
     # #[ColumnName1,ColumnName2,ColumnName3](TableName)
     columns=(query[query.find('[')+1:query.find(']')] )
@@ -170,27 +159,21 @@ def project(query, Semantics):
 
     elif Semantics=="BagSem":
         print("BagSem")
-        #This is the original query which helps create a result table
-        q="CREATE TABLE IF NOT EXISTS %s SELECT %s ,SUM(BagSem) AS BagSem FROM %s GROUP BY %s"%(table.upper()+"_"+(columns.replace(",","_")),columns, table, columns)
-        #q="SELECT %s, SUM(BagSem) AS BagSem FROM %s GROUP BY %s"%(columns,table,columns)
+        q="CREATE TABLE IF NOT EXISTS %s SELECT %s ,SUM(BagSem) AS BagSem FROM %s GROUP BY %s"%(TABLENAME,columns, table, columns)
         print(q)
         mycursor.execute(q)
-        #print(mycursor.fetchall())
 
     elif Semantics=="PolynomialSem":
         print("PolynomialSem")
         #This is the original query which helps create a result table
-        q = "CREATE TABLE IF NOT EXISTS %s SELECT %s, CONCAT('(',PolynomialSem,')') AS PolynomialSem FROM (SELECT %s, GROUP_CONCAT(PolynomialSem SEPARATOR '+') AS PolynomialSem FROM %s GROUP BY %s) AS T;" %(table.upper() + "_" + (columns.replace(",", "_")), columns, columns, table, columns)
+        q = "CREATE TABLE IF NOT EXISTS %s SELECT %s, CONCAT('(',PolynomialSem,')') AS PolynomialSem FROM (SELECT %s, GROUP_CONCAT(PolynomialSem SEPARATOR '+') AS PolynomialSem FROM %s GROUP BY %s) AS T;" %(TABLENAME, columns, columns, table, columns)
         print(q)
-
-        #SELECT store_id,CONCAT('(',PolynomialSem,')') AS PolynomialSem FROM(SELECT store_id,GROUP_CONCAT(PolynomialSem SEPARATOR'+') AS PolynomialSem FROM stocks GROUP BY store_id) AS T;
-        #q="SELECT %s, CONCAT('(',PolynomialSem,')') AS PolynomialSem FROM (SELECT %s, GROUP_CONCAT(PolynomialSem SEPARATOR '+') AS PolynomialSem FROM %s GROUP BY %s) AS T;" %(columns, columns, table, columns)
-
         mycursor.execute(q)
-        #print(mycursor.fetchall())
 
     elif Semantics=="CertaintySem":
         print("CertaintySem")
+        q="CREATE TABLE %s SELECT %s,MAX(CertaintySem) AS CertaintySem FROM %s GROUP BY %s "%(TABLENAME,columns,table,columns)
+        mycursor.execute(q)
 
     elif Semantics=="ProbabilitySem":
         #print("ProbabilitySem")
@@ -230,15 +213,15 @@ def project(query, Semantics):
                 DROP TABLE RESULT;
         '''
         #1.
-        q="CREATE TABLE Copy SELECT %s, ProbabilitySem FROM %s;" %(columns,table)
+        q="CREATE TABLE IF NOT EXISTS Copy SELECT %s, ProbabilitySem FROM %s;" %(columns,table)
         #print(q)
         mycursor.execute(q)
         #2
-        q="UPDATE Copy SET ProbabilitySem=1-ProbabilitySem;"
+        q="UPDATE Copy SET ProbabilitySem=ROUND(1-ProbabilitySem,2);"
         #print(q)
         mycursor.execute(q)
         #3
-        q="CREATE TABLE LogCopy " \
+        q="CREATE TABLE IF NOT EXISTS LogCopy " \
           "SELECT %s,SUM(LnProb) AS ProbabilitySem FROM( SELECT %s, " \
           "CASE WHEN ProbabilitySem=0 THEN 4294967295 ELSE LN(ProbabilitySem)END AS LnProb FROM Copy )" \
           " AS ProbabilitySem GROUP BY %s;"%(columns,columns,columns)
@@ -249,11 +232,11 @@ def project(query, Semantics):
         #print(q)
         mycursor.execute(q)
         #5
-        q="CREATE TABLE RESULT SELECT %s , EXP(ProbabilitySem) AS ProbabilitySem FROM LogCopy;"%columns
+        q="CREATE TABLE IF NOT EXISTS RESULT SELECT %s , EXP(ROUND(ProbabilitySem,2)) AS ProbabilitySem FROM LogCopy;"%columns
         #print(q)
         mycursor.execute(q)
         #6
-        q="UPDATE RESULT SET ProbabilitySem=1-ProbabilitySem WHERE NOT ProbabilitySem=1;"
+        q="UPDATE RESULT SET ProbabilitySem=ROUND(1-ProbabilitySem ,2 )WHERE NOT ProbabilitySem=1;"
         #print(q)
         mycursor.execute(q)
         #7
@@ -266,17 +249,13 @@ def project(query, Semantics):
         mycursor.execute(q)
         q="DROP TABLE LogCopy;"
         mycursor.execute(q)
-
-        TABLENAME=table.upper()+"_"+columns.replace(",","_")
-        print(TABLENAME)
         q="RENAME TABLE RESULT TO "+TABLENAME+";"
         mycursor.execute(q)
 
-        # q="DROP TABLE %s;"%TABLENAME
+        #q="DROP TABLE %s;"%TABLENAME
         # mycursor.execute(q)
 
-
-def union(query, Semantics):
+def union(query, Semantics,TABLENAME):
     '''
             Algorithm:
             Find all the common columns between the 2 Tables
@@ -290,30 +269,100 @@ def union(query, Semantics):
     U[table1](table2)
 
     '''
-    query="U[products](stocks)"
+
     table1=query[query.find('[')+1:query.find(']')]
     table2=query[query.find('(')+1:query.find(')')]
-    print(table1 + " " + table2)
+
+    mycursor.execute("DESCRIBE %s" % table1)
+    T1Attributes = mycursor.fetchall()  # Gets all the names of the columns in Table 1
+    #print(T1Attributes)
+    #mycursor.execute("DESCRIBE %s "% table2)
+    #print(mycursor.fetchall())
+    Columns=""
+
+    for i in T1Attributes:
+        if not i[0]==Semantics:
+            Columns=Columns+i[0]+","
+
+    Columns=Columns[:-1]
+    #print(Columns)
 
     if Semantics == "StandardSem":
         print("StandardSem")
 
     elif Semantics == "BagSem":
         print("BagSem")
+        '''CREATE TABLE PRODUCTS_product_id_UNION_STOCKS_product_id
+        SELECT product_id, SUM(BagSem) AS BagSem
+        FROM(SELECT product_id, BagSem FROM PRODUCTS_product_id
+        UNION ALL
+        SELECT product_id, BagSem FROM STOCKS_product_id
+        ORDER BY product_id, BagSem
+        ) AS T GROUP BY product_id; '''
 
+        q="CREATE TABLE %s SELECT %s, SUM(BagSem) AS BagSem FROM ( SELECT %s, BagSem FROM %s UNION ALL SELECT %s, BagSem FROM %s ORDER BY %s , BagSem) AS T GROUP BY %s;"%(TABLENAME, Columns,Columns,table1,Columns,table2,Columns,Columns)
+        print(q);
+        mycursor.execute(q)
 
     elif Semantics == "PolynomialSem":
         print("PolynomialSem")
+        '''
+            SELECT product_id,GROUP_CONCAT(PolynomialSem separator'+') FROM(
+	            SELECT PRODUCTS_product_id.product_id,PolynomialSem FROM PRODUCTS_product_id
+	            UNION ALL
+	            SELECT STOCKS_product_id.product_id,PolynomialSem FROM STOCKS_product_id
+	            ORDER BY product_id,PolynomialSem
+            )AS T
+            GROUP BY product_id;
+        '''
+
+        q="CREATE TABLE IF NOT EXISTS %s SELECT %s, CONCAT('(',PolynomialSem,')') AS PolynomialSem FROM (SELECT %s , GROUP_CONCAT(PolynomialSem SEPARATOR '+') AS PolynomialSem FROM( SELECT %s, PolynomialSem FROM %s UNION ALL SELECT %s,PolynomialSem FROM %s ORDER BY %s,PolynomialSem)AS T GROUP BY %s) AS T1; "%(TABLENAME,Columns,Columns,Columns,table1,Columns,table2,Columns,Columns)
+
+        print(q)
+        mycursor.execute(q)
 
     elif Semantics == "CertaintySem":
         print("CertaintySem")
+        q="CREATE TABLE %s SELECT %s, MAX(CertaintySem) FROM(SELECT %s,CertaintySem FROM %s UNION ALL SELECT %s,CertaintySem FROM %s ORDER BY %s,CertaintySem)AS T GROUP BY %s"%(TABLENAME,Columns,Columns,table1,Columns,table2,Columns,Columns)
+        #print(q)
+        mycursor.execute(q)
 
     elif Semantics == "ProbabilitySem":
         print("ProbabilitySem")
 
+        '''Union the 2 tables '''
+        q="CREATE TABLE Copy SELECT %s,ProbabilitySem FROM %s UNION ALL SELECT %s,ProbabilitySem FROM %s ORDER BY %s , ProbabilitySem"%(Columns, table1,Columns,table2,Columns)
+        mycursor.execute(q)
+        ''' Update the Copy table and 1-ProbabilitySem'''
+        q="UPDATE Copy SET ProbabilitySem=ROUND(1-ProbabilitySem,2);"
+        mycursor.execute(q)
 
+        '''Find the logarithms of the probabilities'''
+        q="CREATE TABLE IF NOT EXISTS LogCopy SELECT %s,SUM(ROUND(LnProb,2)) AS ProbabilitySem FROM(SELECT %s, CASE WHEN ProbabilitySem=0 THEN 4294967295 ELSE LN(ProbabilitySem)END AS LnProb FROM Copy)AS ProbabilitySem GROUP BY %s;"%(Columns,Columns,Columns)
+        mycursor.execute(q)
 
-def main():
+        '''Update LogCopy and SET ProbabilitySem=0 WHERE ProbabiltySem>1'''
+        q="UPDATE LogCopy SET ProbabilitySem=0 WHERE ProbabilitySem>1;"
+        mycursor.execute(q)
+
+        '''Create the final result table using the exponent values'''
+        q="CREATE TABLE IF NOT EXISTS RESULT SELECT %s , ROUND(EXP(ROUND(ProbabilitySem,2)),2) AS ProbabilitySem FROM LogCopy;"%(Columns)
+        mycursor.execute(q)
+
+        '''Update the result table and do 1-ProbabilitySem'''
+        q="UPDATE RESULT SET ProbabilitySem=ROUND(1-ProbabilitySem ,2 )WHERE NOT ProbabilitySem=1;"
+
+        '''Rename table to TABLENAME'''
+        q="RENAME TABLE RESULT TO %s;"%TABLENAME
+        mycursor.execute(q)
+
+        '''drop the redundant tables'''
+        q="DROP TABLE Copy"
+        mycursor.execute(q)
+        q="DROP TABLE LogCopy"
+        mycursor.execute(q)
+
+def fillDatabase():
     InputSem = input("Select Semantics[0-4] ( 0. Standard ; 1. Bag ; 2. Polynomial ; 3. Probability ; 4. Certainty) : ")
     SelectedSemantics = int(InputSem)
     if SelectedSemantics > 4:
@@ -439,7 +488,7 @@ def main():
 
                 print("Filling " + Semantics[SelectedSemantics] + " Column of Table " + T[0])
                 # UPDATE products set ProbabilitySem=rand()
-                sqlFormula = "UPDATE " + T[0] + " SET " + Semantics[SelectedSemantics] + "= rand()";
+                sqlFormula = "UPDATE " + T[0] + " SET " + Semantics[SelectedSemantics] + "= ROUND(rand(),2)";
                 mycursor.execute(sqlFormula)
                 mycursor.execute("SELECT %s FROM %s" % (Semantics[SelectedSemantics], T[0]))
                 rows = mycursor.fetchall()
@@ -457,28 +506,62 @@ def polynomialProcessing(exp):
     result=2D1^2
     '''
 
+def Operation(exp,Semantics,TABLENAME):
+    #print("Choosing operation ")
+
+    #print(Semantics)
+    #print(TABLENAME)
+
+    if exp[1]=='#':
+        print("projection Operation")
+        project(exp,Semantics,TABLENAME)
+    elif exp[1]=='J':
+        print("Join Operation")
+        join(exp,Semantics,TABLENAME)
+    elif exp[1]=='U':
+        print("Union Operation")
+        union(exp,Semantics,TABLENAME)
+    print(exp)
+
 def queryProcessing(query, Semantics):
     '''
-        {#[] ( {U { J [{#[]()}]  ({#[]()}) }  { J [{#()[]}] ({#()[]}) } } ) }
+        {#[] ( {U { J [{#[]()}]  ({#[]()}) }  ({ J [{#()[]}] ({#()[]}) } } ) }
     '''
 
-    q=" {#[] (      { U { J [{#[]()}]  ({#[]()}) }  { J [{#()[]}] ({#()[]}) } }     ) }"
 
-    forwardBrackIndex=[]
-    operators=['#','J','U']
+    #q=" {#[] (      { U [{ J [{#[]()}]  ({#[]()}) }] ({ J [{#[]()}] ({#[]()}) })  }    ) }"
+
+    q="{J[{#[product_id](products)}]({#[product_id](stocks)})}"
+
+    q=q.replace(" ","")
+
     print(q)
-    index=0
     exit=False
+    res=1
 
-    for i in q:
-        if q[index]=='{':
-            forwardBrackIndex.append(index)
-        elif q[index]=='}':
-            startBrack=forwardBrackIndex.pop()
-            exp=q[startBrack: index+1]
-            print(exp)
+    while q.__contains__('{'):
+        index=0
+        forwardBrackIndex = []
+        for i in q:
+            if q[index]=='{':
+                forwardBrackIndex.append(index)
+            elif q[index]=='}':
+                startBrack=forwardBrackIndex.pop()
+                exp=q[startBrack: index+1]
+                front=q[0:startBrack]
+                back=q[index+1:]
+                TABLENAME="Table"+str(res)
+                newQ=front+TABLENAME+back
+                res=res+1
+                q=newQ
+                #print(exp) #Send exp to the process based on what the 2nd character is
+                Operation(exp,Semantics,TABLENAME)
+                #print(q)
+                break
 
-        index=index+1
+            index=index+1
+
+
 #STANDARD
 #select("",Semantics[0])
 #project("", Semantics[0])
@@ -509,6 +592,6 @@ def queryProcessing(query, Semantics):
 #join("",Semantics[4])
 #union("",Semantics[4])
 
-queryProcessing("",Semantics[0])
+queryProcessing("",Semantics[1])
 mycursor.close()
 inputDb.close()
