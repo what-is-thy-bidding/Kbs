@@ -123,3 +123,207 @@ SELECT PRODUCTS_product_id_product_name.product_id, PRODUCTS_product_id_product_
 FROM PRODUCTS_product_id_product_name INNER JOIN STOCKS_product_id_store_id 
 ON PRODUCTS_product_id_product_name.product_id=STOCKS_product_id_store_id.product_id AND PRODUCTS_product_id_product_name.PolynomialSem=STOCKS_product_id_store_id.PolynomialSem ;
 
+
+
+
+
+
+
+#---------------------------------------------------------------------------------------------------------
+
+#ALTER TABLE ordertxt DROP COLUMN ProbabilitySem,DROP COLUMN CertaintySem;
+#ALTER TABLE products DROP COLUMN ProbabilitySem,DROP COLUMN CertaintySem;
+#ALTER TABLE stocks DROP COLUMN ProbabilitySem,DROP COLUMN CertaintySem;
+#ALTER TABLE staff DROP COLUMN ProbabilitySem,DROP COLUMN CertaintySem;
+#ALTER TABLE TEST DROP COLUMN ProbabilitySem,DROP COLUMN CertaintySem;
+
+#---------------------------PROJECTION-----------------------------------------
+
+#Bag Sematics
+/*
+SELECT store_id,SUM(BagSem)AS BagSem,
+GROUP_CONCAT(PolynomialSem SEPARATOR'+') AS PolynomialSem FROM stocks 
+GROUP BY store_id;
+*/
+
+#Probability Semantics
+/*
+#The Algorithm
+#1.Copy all the required columns into a new table
+CREATE TABLE Copy SELECT city,prob FROM TEST;
+#2.UPDATE Copy by subtracting 1 with all probabilities
+UPDATE Copy SET prob=1-prob;
+#3.Create a LogCopy that will have the log values of all probabilities
+CREATE TABLE LogCopy
+	SELECT city, SUM(LnProb) AS prob FROM(
+		SELECT city, 
+		CASE WHEN prob=0 THEN 4294967295
+		ELSE LN(prob)
+		END AS LnProb FROM Copy
+	) AS prob GROUP BY city;
+#4.UPDATE LogCopy and set every values>1 as 0
+UPDATE LogCopy SET prob=0 WHERE prob>1;
+#5.CREATE a final RESULT Table which has the exponent values of the Log values
+CREATE TABLE RESULT 
+	SELECT city, EXP(prob) AS prob FROM LogCopy ;
+#6. UPDATE RESULT table by subtracting from 1 execpt if the values are already 1 
+#7. UPDATE RESULT SET prob=1-prob WHERE NOT prob=1;
+SELECT * FROM RESULT;
+#7.DROP the Remaining tables
+DROP TABLE Copy;
+DROP TABLE LogCopy;
+DROP TABLE RESULT;
+*/
+
+#Certainty Semantics
+/*
+SELECT product_id, MAX(CertaintySem) FROM
+(
+	SELECT product_id,CertaintySem FROM PRODUCTS_product_id 
+    UNION ALL 
+    SELECT product_id,CertaintySem FROM STOCKS_product_id 
+    ORDER BY product_id,CertaintySem
+)AS T GROUP BY product_id;
+*/
+
+#---------------------------#JOIN----------------------------------------------
+
+
+/*
+Find all the common attributes between the 2 joining tables
+Perform a JOIN on the the 1st one between them
+If there are more than 1 common columns between them then,
+Compare the common attributes with the projected selected/projected functions
+*/
+
+#Tables
+
+/*
+SELECT* FROM PRODUCTS_product_id;
+SELECT* FROM STOCKS_product_id;
+*/
+
+
+#Bag Semantics
+/*
+SELECT PRODUCTS_product_id_product_name.product_id,product_name,store_id,PRODUCTS_product_id_product_name.BagSem * STOCKS_product_id_store_id.BagSem AS BagSem 
+FROM PRODUCTS_product_id_product_name INNER JOIN STOCKS_product_id_store_id ON PRODUCTS_product_id_product_name.product_id=STOCKS_product_id_store_id.product_id;
+*/
+/*
+SELECT * FROM STOCKS_product_id_store_id;
+
+SELECT PRODUCTS_product_id_product_name.product_id, product_name, store_id, 
+PRODUCTS_product_id_product_name.BagSem* STOCKS_product_id_store_id.BagSem AS BagSem 
+FROM PRODUCTS_product_id_product_name,STOCKS_product_id_store_id 
+WHERE PRODUCTS_product_id_product_name.product_id=STOCKS_product_id_store_id.product_id ;
+
+SELECT PRODUCTS_product_id_product_name.product_id, product_name, store_id,  PRODUCTS_product_id_product_name.BagSem* STOCKS_product_id_store_id.BagSem AS BagSem FROM PRODUCTS_product_id_product_name,STOCKS_product_id_store_id WHERE PRODUCTS_product_id_product_name.product_id=STOCKS_product_id_store_id.product_id ;
+*/
+
+#Polynomial Semantics
+/*
+SELECT PRODUCTS_product_id_product_name.product_id,product_name,store_id,STOCKS_product_id_store_id.PolynomialSem,PRODUCTS_product_id_store_id.PolynomialSem 
+FROM PRODUCTS_product_id_product_name INNER JOIN STOCKS_product_id_store_id 
+ON STOCKS_product_id_store_id.product_id=PRODUCTS_product_id_store_id.product_id;*/
+/*
+SELECT PRODUCTS_product_id.product_id,
+PRODUCTS_product_id.ProbabilitySem * STOCKS_product_id.ProbabilitySem AS ProbabilitySem
+FROM PRODUCTS_product_id INNER JOIN STOCKS_product_id 
+ON PRODUCTS_product_id.product_id=STOCKS_product_id.product_id;*/ 
+
+#Probabilty Semantics
+/*
+SELECT PRODUCTS_product_id.product_id,  PRODUCTS_product_id.ProbabilitySem * STOCKS_product_id.ProbabilitySem AS ProbabilitySem FROM PRODUCTS_product_id INNER JOIN STOCKS_product_id ON PRODUCTS_product_id.product_id=STOCKS_product_id.product_id ;
+SELECT* FROM PRODUCTS_product_id_JOIN_STOCKS_product_id; 
+*/
+
+#----------------------------#UNION---------------------------------------------
+
+#Tables
+ 
+#BagSem
+/*
+DROP TABLE PRODUCTS_product_id_UNION_STOCKS_product_id;
+CREATE TABLE PRODUCTS_product_id_UNION_STOCKS_product_id 
+SELECT product_id, SUM(BagSem) AS BagSem FROM ( 
+SELECT product_id, BagSem FROM PRODUCTS_product_id 
+UNION ALL 
+SELECT product_id, BagSem FROM STOCKS_product_id ORDER BY product_id , BagSem)AS T 
+GROUP BY product_id;
+
+SELECT * FROM PRODUCTS_product_id_UNION_STOCKS_product_id;
+*/
+
+#PolynomialSem
+
+/*
+SELECT * FROM STOCKS_product_id;
+*/
+/*
+SELECT product_id,GROUP_CONCAT(PolynomialSem separator'+') FROM(
+	SELECT PRODUCTS_product_id.product_id,PolynomialSem FROM PRODUCTS_product_id
+	UNION ALL
+	SELECT STOCKS_product_id.product_id,PolynomialSem FROM STOCKS_product_id
+	ORDER BY product_id,PolynomialSem
+)AS T
+GROUP BY product_id;
+*/
+/*
+CREATE TABLE IF NOT EXISTS PRODUCTS_product_id_UNION_STOCKS_product_id
+	SELECT product_id,CONCAT('(',PolynomialSem,')') AS PolynomialSem FROM (
+		SELECT product_id , GROUP_CONCAT(PolynomialSem SEPARATOR '+') AS PolynomialSem FROM( 
+		SELECT product_id, PolynomialSem FROM PRODUCTS_product_id 
+		UNION ALL SELECT 
+		product_id,PolynomialSem FROM STOCKS_product_id ORDER BY product_id,PolynomialSem)AS T 
+		GROUP BY product_id 
+	)AS T1 ;*/
+
+/*
+SELECT*FROM PRODUCTS_product_id_UNION_STOCKS_product_id;
+*/
+
+
+#ProbabiltySem
+
+/*
+#Unioning all both the tables
+CREATE TABLE Copy 
+SELECT product_id, ProbabilitySem FROM PRODUCTS_product_id 
+UNION ALL 
+SELECT product_id, ProbabilitySem FROM STOCKS_product_id ORDER BY product_id,ProbabilitySem;
+
+SELECT * FROM Copy;
+UPDATE Copy SET ProbabilitySem=ROUND(1-ProbabilitySem,2);
+*/
+
+/*
+CREATE TABLE IF NOT EXISTS LogCopy SELECT product_id,SUM(ROUND(LnProb,2)) AS ProbabilitySem FROM(
+SELECT product_id, CASE WHEN ProbabilitySem=0 THEN 4294967295 ELSE LN(ProbabilitySem)END AS LnProb 
+FROM Copy
+)AS ProbabilitySem GROUP BY product_id;*/
+
+/*
+#UPDATE LogCopy SET ProbabilitySem=0 WHERE ProbabilitySem>1;
+
+#SELECT * FROM LogCopy;
+
+#CREATE TABLE IF NOT EXISTS RESULT SELECT product_id , ROUND(EXP(ROUND(ProbabilitySem,2)),2) AS ProbabilitySem FROM LogCopy;
+
+#SELECT * FROM RESULT;
+
+#UPDATE RESULT SET ProbabilitySem=ROUND(1-ProbabilitySem ,2 )WHERE NOT ProbabilitySem=1;
+
+#SELECT * FROM RESULT;
+
+#RENAME TABLE RESULT TO PRODUCTS_product_id_UNION_STOCKS_product_id;
+*/
+/*
+SELECT * FROM PRODUCTS_product_id;
+SELECT * FROM STOCKS_product_id;
+SELECT * FROM PRODUCTS_product_id_UNION_STOCKS_product_id;
+*/
+
+select* FROM Table1;
+SELECT * FROM Table2;
+SELECT * FROM Table3;
+#SELECT (ROUND(Table1.CertaintySem*Table2.CertaintySem,2)) AS CertaintySem FROM Table1,Table2;
