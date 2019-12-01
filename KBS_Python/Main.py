@@ -3,8 +3,7 @@ import random
 '''
 Things left to do
     1. TESTING SELECT FUNCTION WITH ALL SEMANTICS
-    2. Polynomial Semantics Simplification    
-    
+    2. Add a remove 0 standard semantics statement to the Standard Semantics projection function.    
 '''
 
 # database=input("Database name in mySQL: ")
@@ -43,7 +42,7 @@ def select(query,Semantics,TABLENAME):
     tempTable="temp"+table
 
     q="CREATE TABLE %s SELECT %s,%s FROM %s WHERE %s;"%(tempTable,columns,Semantics,table,conditions)
-    print(q)
+    #print(q)
     mycursor.execute(q)
     q="#[%s](%s)"%(columns,tempTable)
 
@@ -52,9 +51,6 @@ def select(query,Semantics,TABLENAME):
 
     q="DROP TABLE %s"%tempTable
     mycursor.execute(q)
-
-
-
 
 def join(query, Semantics,TABLENAME):
     '''
@@ -157,19 +153,19 @@ def project(query, Semantics,TABLENAME):
     if Semantics == "StandardSem":
         print("StandardSem")
         q="CREATE TABLE %s SELECT %s , StandardSem FROM %s GROUP BY %s,StandardSem"%(TABLENAME,columns,table,columns)
-        print(q)
+        #print(q)
         mycursor.execute(q)
 
     elif Semantics=="BagSem":
         print("BagSem")
         q="CREATE TABLE IF NOT EXISTS %s SELECT %s ,SUM(BagSem) AS BagSem FROM %s GROUP BY %s"%(TABLENAME,columns, table, columns)
-        print(q)
+        #print(q)
         mycursor.execute(q)
 
     elif Semantics=="PolynomialSem":
         print("PolynomialSem")
         q = "CREATE TABLE IF NOT EXISTS %s SELECT %s, CONCAT('(',PolynomialSem,')') AS PolynomialSem FROM (SELECT %s, GROUP_CONCAT(PolynomialSem SEPARATOR '+') AS PolynomialSem FROM %s GROUP BY %s) AS T;" %(TABLENAME, columns, columns, table, columns)
-        print(q)
+        #print(q)
         mycursor.execute(q)
 
     elif Semantics=="CertaintySem":
@@ -238,7 +234,7 @@ def project(query, Semantics,TABLENAME):
         #print(q)
         mycursor.execute(q)
         #6
-        q="UPDATE RESULT SET ProbabilitySem=ROUND(1-ProbabilitySem ,2 )WHERE NOT ProbabilitySem=1;"
+        q="UPDATE RESULT SET ProbabilitySem=1-ProbabilitySem WHERE NOT ProbabilitySem=1;"
         #print(q)
         mycursor.execute(q)
         #7
@@ -554,31 +550,31 @@ def queryProcessing(query, Semantics):
     '''
 
 
-    #q=" {#[] (      { U [{ J [{#[]()}]  ({#[]()}) }] ({ J [{#[]()}] ({#[]()}) })  }    ) }"
+    #query=" {#[] (      { U [{ J [{#[]()}]  ({#[]()}) }] ({ J [{#[]()}] ({#[]()}) })  }    ) }"
 
-    q="{J[{#[product_id](products)}]({#[product_id](stocks)})}"
+    #query="{J[{#[product_id](products)}]({#[product_id](stocks)})}"
 
-    q=q.replace(" ","")
+    query=query.replace(" ","")
 
-    print(q)
+    print(query)
     exit=False
     res=1
 
-    while q.__contains__('{'):
+    while query.__contains__('{'):
         index=0
         forwardBrackIndex = []
-        for i in q:
-            if q[index]=='{':
+        for i in query:
+            if query[index]=='{':
                 forwardBrackIndex.append(index)
-            elif q[index]=='}':
+            elif query[index]=='}':
                 startBrack=forwardBrackIndex.pop()
-                exp=q[startBrack: index+1]
-                front=q[0:startBrack]
-                back=q[index+1:]
+                exp=query[startBrack: index+1]
+                front=query[0:startBrack]
+                back=query[index+1:]
                 TABLENAME="Table"+str(res)
                 newQ=front+TABLENAME+back
                 res=res+1
-                q=newQ
+                query=newQ
                 #print(exp) #Send exp to the process based on what the 2nd character is
                 Operation(exp,Semantics,TABLENAME)
                 #print(q)
@@ -589,8 +585,9 @@ def queryProcessing(query, Semantics):
     print("Query Completed ")
 
 
-#queryProcessing("",Semantics[0])
-select("S[category_id](products)|(product_id>5 )|", Semantics[1],"Table1")
+queryProcessing("{#[category_id](products)}",Semantics[3])
+#select("S[category_id](products)|(product_id>5 )|", Semantics[2],"Table1")
+
 #STANDARD
 #select("",Semantics[0])
 #project("", Semantics[0])
